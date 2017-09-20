@@ -5,3 +5,4 @@ requires 'Mojolicious';
 
 # from opencloset cpan
 requires 'OpenCloset::Schema';
+requires 'Postcodify';

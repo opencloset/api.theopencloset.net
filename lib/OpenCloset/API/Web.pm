@@ -1,9 +1,14 @@
 package OpenCloset::API::Web;
 use Mojo::Base 'Mojolicious';
 
-use version; our $VERSION = qv("v0.0.1");
+use Email::Valid ();
+use Postcodify;
 
 use OpenCloset::Schema;
+use OpenCloset::DB::Plugin::Order::Sale;
+use OpenCloset::API::Order;
+
+use version; our $VERSION = qv("v0.0.1");
 
 has schema => sub {
     my $self = shift;
@@ -14,6 +19,13 @@ has schema => sub {
             %{ $conf->{opts} },
         }
     );
+};
+
+has postcodify => sub { Postcodify->new };
+
+has api => sub {
+    my $self = shift;
+    return OpenCloset::API::Order->new( schema => $self->schema );
 };
 
 =head1 METHODS
@@ -32,6 +44,7 @@ sub startup {
 
     $self->_public_routes;
     $self->_private_routes;
+    $self->_extend_validator;
 }
 
 sub _public_routes {
@@ -45,6 +58,18 @@ sub _private_routes {
 
     my $auth = $r->under('/')->to('user#auth')->name('auth');
     $auth->get('/')->to('root#index');
+    $auth->post('/reservation')->to('reservation#create');
+}
+
+sub _extend_validator {
+    my $self = shift;
+
+    $self->validator->add_check(
+        email => sub {
+            my ( $v, $name, $value ) = @_;
+            return not Email::Valid->address($value);
+        }
+    );
 }
 
 1;
