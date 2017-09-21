@@ -47,7 +47,7 @@ sub error {
     $self->log->error($error);
     $self->render(
         status => $status,
-        json   => { json => { error => $error || q{} } },
+        json   => { error => $error || q{} },
     );
 
     return;
